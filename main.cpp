@@ -5,9 +5,8 @@
 #include <CL/cl.hpp>
 #include <chrono>  // For measuring time
 
-#define INPUT_SIZE 2048
-#define WEIGHT_SIZE 2048
-#define NUM_ITERATIONS 10000
+#include "utils.hpp"
+#include "config.hpp"
 
 // Function to initialize OpenCL and run VM kernel
 void runVM() {
@@ -49,6 +48,7 @@ void runVM() {
     std::vector<uint8_t> input(INPUT_SIZE);  // Vector (size INPUT_SIZE)
     std::vector<uint8_t> weight(INPUT_SIZE * WEIGHT_SIZE);  // Matrix (size INPUT_SIZE x WEIGHT_SIZE)
     std::vector<uint32_t> output(WEIGHT_SIZE);  // Output vector (size WEIGHT_SIZE)
+    std::vector<uint32_t> golden_output(WEIGHT_SIZE);  // Golden Output vector (size WEIGHT_SIZE)
     
     // Initialize input and weight matrices
     // (In a real scenario, initialize these with meaningful values)
@@ -58,6 +58,9 @@ void runVM() {
             weight[i * WEIGHT_SIZE + j] = j; //static_cast<uint8_t>((i + j) % 256); // Example: Initialize weight to values from 0 to 255
         }
     }
+
+    // Calculate golden output
+    gemv(input, weight, golden_output, INPUT_SIZE, WEIGHT_SIZE);
     
     // Create OpenCL buffers
     cl::Buffer inputBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(uint8_t) * INPUT_SIZE, input.data());
@@ -86,16 +89,30 @@ void runVM() {
         totalElapsedTime += elapsedTime;
     }
 
+    // Read the result from the device (optional)
+    queue.enqueueReadBuffer(outputBuffer, CL_TRUE, 0, sizeof(uint32_t) * WEIGHT_SIZE, output.data());
+
     // Calculate average time
     double averageTime = totalElapsedTime / NUM_ITERATIONS;
 
-    std::cout << "Average kernel execution time over " << NUM_ITERATIONS << " iterations: " << averageTime << " ns" << std::endl;
+    std::cout << "Average kernel execution time over " << NUM_ITERATIONS << " iterations\t: " << averageTime << " ns" << std::endl;
+
+    // Calculate L2 norm of difference and index of highest difference
+    double l2norm;
+    double maxDiffIndex;
+    l2_norm(output, golden_output, l2norm, maxDiffIndex);
+
+    // Output results
+    std::cout << "L2 Norm of Difference\t\t\t\t\t: " << l2norm << std::endl;
+    std::cout << "Index of Highest Difference\t\t\t\t: " << maxDiffIndex << std::endl;
+
     
-    // Read the result from the device (optional)
-    // queue.enqueueReadBuffer(outputBuffer, CL_TRUE, 0, sizeof(uint32_t) * WEIGHT_SIZE, output.data());
-    // Display output (optional)
+    
+    // // Display output (optional)
     // for (int i = 0; i < WEIGHT_SIZE; ++i) {
-    //     std::cout << "Output[" << i << "]: " << output[i] << std::endl;
+    //     std::cout << " Output[" << i << "]: " << output[i] << std::endl;
+    //     std::cout << "GOutput[" << i << "]: " << golden_output[i] << std::endl;
+    //     std::cout << "--------"<<std::endl;
     // }
 }
 

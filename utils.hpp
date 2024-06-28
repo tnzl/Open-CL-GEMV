@@ -42,3 +42,13 @@ void transposeMatrix(const std::vector<T>& matrix, std::vector<T>& transposedMat
         }
     }
 }
+
+// Function to quantize float to uint8_t
+uint8_t quantize(float value, float scale, uint8_t zero_point) {
+    return static_cast<uint8_t>(std::round(value / scale) + zero_point);
+}
+
+// Function to dequantize uint32_t to float
+float dequantize(uint32_t value, float scale, uint32_t zero_point) {
+    return static_cast<float>(value - zero_point) * scale;
+}

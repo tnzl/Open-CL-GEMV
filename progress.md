@@ -4,8 +4,9 @@ Average kernel execution time over 10000 iterations     : 105811 ns
 L2 Norm of Difference                                   : 0
 Index of Highest Difference                             : -1
 
-Copy data from global to local 
-Average kernel execution time over 100000 iterations    : 77842.9 ns
+be7dc06128451dc43995b964528dca8e9748e3b3
+Updated kernel to use local memory
+Average kernel execution time over 100000 iterations    : 72378.9 ns
 L2 Norm of Difference                                   : 0
 Index of Highest Difference                             : -1
 
@@ -17,4 +18,3 @@ Index of Highest Difference                             : -1
 
 
 
-lat73kns
